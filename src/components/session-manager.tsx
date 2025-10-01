@@ -18,24 +18,31 @@ export function SessionManager() {
   const [sessionInfo, setSessionInfo] = useState<SessionInfo | null>(null)
   const [timeLeft, setTimeLeft] = useState<string>("")
   const [showWarning, setShowWarning] = useState(false)
-  const [modalDismissed, setModalDismissed] = useState(false)
-  const [remindMeLaterTime, setRemindMeLaterTime] = useState<number | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
 
   // Check session status
   const checkSession = async () => {
     try {
       const response = await fetch('/api/auth/check')
-      if (response.ok) {
-        const data = await response.json()
+      
+      if (!response.ok) {
+        router.push('/login')
+        return
+      }
+      
+      const data = await response.json()
+      
+      if (data.success) {
         setSessionInfo(data.session)
       } else {
-        // Session invalid, redirect to login
         router.push('/login')
       }
     } catch (error) {
       console.error('Session check error:', error)
       router.push('/login')
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -43,30 +50,11 @@ export function SessionManager() {
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout')
-      router.push('/login')
     } catch (error) {
       console.error('Logout error:', error)
+    } finally {
       router.push('/login')
     }
-  }
-
-  // Handle re-login - store current path and redirect to login
-  const handleReLogin = () => {
-    // Store current path for redirect after login
-    sessionStorage.setItem('redirectAfterLogin', window.location.pathname)
-    router.push('/login')
-  }
-
-  // Dismiss modal manually
-  const handleDismissModal = () => {
-    setModalDismissed(true)
-  }
-
-  // Remind me later - hide modal for 2 minutes
-  const handleRemindMeLater = () => {
-    const remindTime = Date.now() + (2 * 60 * 1000) // 2 minutes
-    setRemindMeLaterTime(remindTime)
-    setModalDismissed(true)
   }
 
   // Calculate time left
@@ -79,12 +67,10 @@ export function SessionManager() {
       const timeLeftMs = expiresAt - now
 
       if (timeLeftMs <= 0) {
-        // Session expired
         handleLogout()
         return
       }
 
-      // Calculate time components
       const minutes = Math.floor(timeLeftMs / (1000 * 60))
       const seconds = Math.floor((timeLeftMs % (1000 * 60)) / 1000)
 
@@ -94,41 +80,18 @@ export function SessionManager() {
         setTimeLeft(`${seconds} detik`)
       }
 
-      // Check if we should show warning
-      // Don't show if modal was dismissed and remind me later is still active
-      const shouldShowWarning = timeLeftMs < 5 * 60 * 1000 // Less than 5 minutes
-      const remindMeLaterActive = remindMeLaterTime && now < remindMeLaterTime
-      
-      if (shouldShowWarning && !remindMeLaterActive) {
-        setShowWarning(true)
-        setModalDismissed(false) // Reset dismissal state when warning becomes active again
-      } else {
-        setShowWarning(false)
-      }
+      const shouldShowWarning = timeLeftMs < 5 * 60 * 1000
+      setShowWarning(shouldShowWarning)
     }
 
-    // Update immediately
     updateTimer()
-
-    // Update every second
     const timer = setInterval(updateTimer, 1000)
-
     return () => clearInterval(timer)
-  }, [sessionInfo, remindMeLaterTime])
+  }, [sessionInfo])
 
   // Check session on mount
   useEffect(() => {
     checkSession()
-    
-    // Check if we need to redirect after login
-    const redirectPath = sessionStorage.getItem('redirectAfterLogin')
-    if (redirectPath) {
-      // Clear the stored path
-      sessionStorage.removeItem('redirectAfterLogin')
-      // Reset modal states when returning from login
-      setModalDismissed(false)
-      setRemindMeLaterTime(null)
-    }
   }, [])
 
   // Auto-check session every 30 seconds
@@ -137,74 +100,21 @@ export function SessionManager() {
     return () => clearInterval(interval)
   }, [])
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-600"></div>
+        <span className="text-xs text-slate-600">Loading...</span>
+      </div>
+    )
+  }
+
   if (!sessionInfo) {
-    return null // or loading spinner
+    return null
   }
 
   return (
     <>
-      {/* Session Warning Modal */}
-      {showWarning && !modalDismissed && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <Card className="w-full max-w-md border-orange-200 bg-orange-50">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2 text-orange-800">
-                  <Clock className="h-5 w-5" />
-                  Session Akan Habis
-                </CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleDismissModal}
-                  className="h-8 w-8 p-0 text-orange-600 hover:text-orange-800 hover:bg-orange-100"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-              <CardDescription className="text-orange-700">
-                Session Anda akan berakhir dalam:
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-800 mb-2">
-                  {timeLeft}
-                </div>
-                <Alert className="border-orange-200 bg-orange-100">
-                  <AlertDescription className="text-orange-700 text-sm">
-                    Silakan simpan pekerjaan Anda atau perpanjang session dengan login kembali.
-                  </AlertDescription>
-                </Alert>
-              </div>
-              <div className="flex flex-col gap-2">
-                <Button 
-                  variant="outline" 
-                  onClick={handleLogout}
-                  className="w-full"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Logout Sekarang
-                </Button>
-                <Button 
-                  onClick={handleReLogin}
-                  className="w-full bg-orange-600 hover:bg-orange-700"
-                >
-                  Login Ulang
-                </Button>
-                <Button 
-                  variant="ghost"
-                  onClick={handleRemindMeLater}
-                  className="w-full text-orange-700 hover:text-orange-800 hover:bg-orange-100"
-                >
-                  Ingatkan Saya Nanti
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
       {/* Session Status in Header */}
       <div className="flex items-center gap-3">
         <Badge variant={showWarning ? "destructive" : "secondary"} className="text-xs">
