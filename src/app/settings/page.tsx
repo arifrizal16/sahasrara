@@ -348,7 +348,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label className="text-sm font-medium text-slate-700">Dikembangkan Oleh</Label>
-                    <p className="text-slate-900 font-medium">Sam</p>
+                    <p className="text-slate-900 font-medium">Arif Rizal</p>
                   </div>
                   <div>
                     <Label className="text-sm font-medium text-slate-700">Tahun</Label>
@@ -356,7 +356,7 @@ export default function SettingsPage() {
                   </div>
                   <div className="md:col-span-2">
                     <Label className="text-sm font-medium text-slate-700">Kontak</Label>
-                    <p className="text-slate-900">test@gmail.com</p>
+                    <p className="text-slate-900">mochrizal1616@gmail.com</p>
                   </div>
                 </div>
               </CardContent>
