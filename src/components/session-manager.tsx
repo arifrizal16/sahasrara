@@ -47,15 +47,20 @@ export function SessionManager() {
   }
 
   // Logout function
-  const handleLogout = async () => {
-    try {
-      await fetch('/api/auth/logout')
-    } catch (error) {
-      console.error('Logout error:', error)
-    } finally {
+const handleLogout = async () => {
+  try {
+    const response = await fetch('/api/auth/logout')
+    
+    if (response.ok) {
       router.push('/login')
+    } else {
+      // Handle server error if needed
+      console.error('Logout failed on server')
     }
+  } catch (error) {
+    console.error('Logout error:', error)
   }
+}
 
   // Calculate time left
   useEffect(() => {
