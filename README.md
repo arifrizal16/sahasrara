@@ -86,17 +86,13 @@ Saya adalah developer yang membangun sistem ini. Jika Anda tertarik memiliki sis
 
 ✅ Proses Kerja: 
 
-     Diskusi Kebutuhan: Apa yang Anda butuhkan? (FREE consultation)
+     Diskusi Kebutuhan: Apa yang Anda butuhkan?
      Penawaran & Deal: Fitur, timeline, budget
      Development: Build sistem sesuai kesepakatan  
-     Testing & Training: Tes sistem + training staff Anda
      Deployment & Go Live: Install di server + maintenance
      
 
-📞 Hubungi Saya untuk Konsultasi GRATIS 
-
 Mau diskusi tentang pembuatan sistem serupa? 
 
-📱 WhatsApp: 0812-3456-7890
-📧 Email: developer@baby-spa-system.com 
-🌐 Portfolio: www.developer-portfolio.com    
+📱 WhatsApp: 089-686-809-843
+📧 Email: mochrizal1616@gmail.com 
